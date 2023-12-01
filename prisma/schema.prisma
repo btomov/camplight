@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// schema.prisma
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique
+  username  String
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  // Many-to-Many relationship with Chat (participants in the chat)
+  chatIDs String[]  @db.ObjectId
+  chats   Chat[]    @relation(fields: [chatIDs], references: [id])
+  Message Message[]
+
+  // Define an index on the 'username' column
+  @@index([username], name: "username_index")
+}
+
+model Chat {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  chatId    String   @unique
+  type      String
+  createdAt DateTime @default(now())
+
+  // Many-to-Many relationship with User (participants in the chat)
+  participantIDs String[]  @db.ObjectId
+  participants   User[]    @relation(fields: [participantIDs], references: [id])
+  Message        Message[]
+
+  // Define an index on the 'type' column
+  @@index([type], name: "chat_type_index")
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  messageId String   @unique
+  content   String
+  createdAt DateTime @default(now())
+
+  userId String @db.ObjectId
+  chatId String @db.ObjectId
+  // Many-to-One relationship with User (sender of the message)
+  sender User   @relation(fields: [userId], references: [id])
+
+  // Many-to-One relationship with Chat (chat to which the message belongs)
+  chat Chat @relation(fields: [chatId], references: [id])
+
+  // Define an index on the 'createdAt' column
+  @@index([createdAt], name: "message_createdAt_index")
+}
