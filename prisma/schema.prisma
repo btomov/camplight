@@ -14,9 +14,7 @@ datasource db {
 
 model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @unique
   username  String
-  email     String   @unique
   createdAt DateTime @default(now())
 
   // Many-to-Many relationship with Chat (participants in the chat)
